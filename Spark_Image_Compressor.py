@@ -73,31 +73,15 @@ def my_create_3d_image(arr):
     img= np.dstack([r[0],r[1],r[2]])
     return arr[0], img
 
-
-
-### WRITE ALL HELPER FUNCTIONS ABOVE THIS LINE ###
-
 def generate_Y_cb_cr_matrices(rdd):
-    """
-    THIS FUNCTION MUST RETURN AN RDD
-    """
-    ### BEGIN SOLUTION ###
     rdd=rdd.flatMap(my_bgr2ycrcb)  
     return rdd
 
 def generate_sub_blocks(rdd):
-    """
-    THIS FUNCTION MUST RETURN AN RDD
-    """
-    ### BEGIN SOLUTION ###
     rdd=rdd.flatMap(my_create_block)
     return rdd
 
 def apply_transformations(rdd):
-    """
-    THIS FUNCTION MUST RETURN AN RDD
-    """
-    ### BEGIN SOLUTION ###
                 
     rdd=rdd.map(lambda x : (x[0],(x[1][0],dct_block((x[1][1]+128).astype(np.int8),True))))
     #note above since the data type is uint8 , so (x + 128).astype(np.int8) is actually x - 128    
@@ -113,20 +97,15 @@ def apply_transformations(rdd):
 def combine_sub_blocks(rdd):
     """
     Given an rdd of subblocks from many different images, combine them together to reform the images.
-    Should your rdd should contain values that are np arrays of size (height, width).
-
-    THIS FUNCTION MUST RETURN AN RDD
+    rdd should contain values that are np arrays of size (height, width).
     """
-    ### BEGIN SOLUTION ###
     rdd=rdd.groupByKey().map(my_combine_block)
     return rdd
 
 def run(images):
     """
-    THIS FUNCTION MUST RETURN AN RDD
-
     Returns an RDD where all the images will be proccessed once the RDD is aggregated.
-    The format returned in the RDD should be (image_id, image_matrix) where image_matrix 
+    The format returned in the RDD is (image_id, image_matrix) where image_matrix 
     is an np array of size (height, width, 3).
     """
     sc = SparkContext()
@@ -136,10 +115,7 @@ def run(images):
     rdd = generate_sub_blocks(rdd)
     rdd = apply_transformations(rdd)
     rdd = combine_sub_blocks(rdd)
-
-    ### BEGIN SOLUTION HERE ###
-    # Add any other necessary functions you would like to perform on the rdd here
-    # Feel free to write as many helper functions as necessary
+    
     #create the 3 d matrix
     #first group the 3 channels into a tuple for each image
     rdd=rdd.sortByKey().map(lambda x : (x[0][0], (x[0][1],x[1])))
